@@ -9,13 +9,13 @@ class RentPropertyDetail(PropertyDetail):
 
 
 class RentLocationDetail(LocationDetail):
-    propertydetails = models.ForeignKey(RentPropertyDetail,on_delete= models.CASCADE)
+    propertydetails = models.ForeignKey(RentPropertyDetail,on_delete= models.CASCADE,null=True)
     street = models.CharField(max_length=150,blank=False)
     
 
 
 class RentalDetail(models.Model):
-    rentallocation = models.ForeignKey(RentLocationDetail,on_delete= models.CASCADE)
+    rentallocation = models.ForeignKey(RentLocationDetail,on_delete= models.CASCADE,null=True)
     availablelease= models.BooleanField(default=True)
     expectedrent= models.IntegerField(blank=False)
     expecteddeposit=models.IntegerField(blank=False)
@@ -24,45 +24,25 @@ class RentalDetail(models.Model):
     preferedtenants = models.CharField(max_length=50,blank=False)
     furnishing = models.CharField(max_length=20,blank=False)
     parking = models.CharField(max_length=20,blank=False)
+    image= models.ImageField()
 
 
-class RentImagedetail(models.Model):
-    image= models.CharField(max_length=20,blank=True)
+class RentAmenities(Amenities):
+    rentdetails = models.ForeignKey(RentalDetail,on_delete=models.CASCADE)
 
+class RentSchedule(Schedule):
+    Rentdetail=models.ForeignKey(RentalDetail,on_delete=models.CASCADE)
 
-    def __str__(self):
-        return self.image
-
-class RentAmenities(models.Model):
-
-    bathroom = models.IntegerField()
-    balcony = models.IntegerField()
-    watersupply=models.CharField(max_length=20)
-    gym = models.BooleanField(default=False)
-    nonvegallowed = models.BooleanField(default=True)
-    showinghouse = models.CharField(max_length=20)
-    secondarynumber = models.IntegerField()
-    amenitiesavailable=models.CharField(max_length=400)
-
-class ResalePropertyDetail(models.Model):
-    apartmenttype = models.CharField(max_length=20,blank=False)
-    apartmentname = models.CharField(max_length=20,blank=False)
+class ResalePropertyDetail(PropertyDetail):
     ownershiptype = models.CharField(max_length=20)
     propertyage   = models.CharField(max_length=50)
-    bhktype       = models.CharField(max_length=20,blank=False)
-    floor         = models.IntegerField(blank=False)
-    totalfloor    = models.IntegerField(blank=False)
     floortype     = models.CharField(max_length=30)
     no_of_units   = models.IntegerField()
     facing        = models.CharField(max_length=20,blank=True)
-    propertysize  = models.IntegerField(blank=False)
+    
 
-    def __str__(self):
-        return self.apartmenttype
-
-class ResaleLocationDetail(models.Model):
-    city     = models.CharField(max_length=50,blank=False)
-    locality = models.CharField(max_length=150,blank=False)
+class ResaleLocationDetail(LocationDetail):
+    Resalepropertydetail = models.ForeignKey(ResalePropertyDetail,on_delete=models.CASCADE)
     street   = models.CharField(max_length=150,blank=False)
 
     def __str__(self):
@@ -75,24 +55,10 @@ class Resaledetail(models.Model):
     kitchen_type    = models.CharField(max_length=50)
     furnishing      = models.CharField(max_length=20,blank=False)
     parking         = models.CharField(max_length=30)
+    image= models.ImageField()
 
-
-class ResaleImagedetail(models.Model):
-    image= models.CharField(max_length=20,blank=True)
-
-
-    def __str__(self):
-        return self.image
-
-class ResaleAmenities(models.Model):
-    bathroom           = models.IntegerField()
-    balcony            = models.IntegerField()
-    watersupply        = models.CharField(max_length=20)
-    gym                = models.BooleanField(default=True)
-    nonvegallowed      = models.BooleanField(default=True)
-    showinghouse       = models.CharField(max_length=20)
-    secondarynumber    = models.IntegerField()
-    amenitiesavailable = models.CharField(max_length=400)
+class ResaleAmenities(Schedule):
+    resaledetail = models.ForeignKey(Resaledetail,on_delete=models.CASCADE)
     
 
 class AdditionalInformation(models.Model):
@@ -100,11 +66,8 @@ class AdditionalInformation(models.Model):
     propertytax          = models.BooleanField(default=True)
     occupancyCertificate = models.BooleanField(default=True)
 
-class ResaleSchedule(models.Model):
-    availabilty       = models.CharField(max_length=30)
-    startTime         = models.DateTimeField()
-    endTime           = models.DateTimeField()
-    availabiltyAllDay = models.BooleanField(default=False)
+class ResaleSchedule(Schedule):
+    resaledetail=models.ForeignKey(Resaledetail,on_delete=models.CASCADE)
 
 class HostelRoomDetail(models.Model):
     room_choices = [
@@ -123,14 +86,10 @@ class HostelRoomDetail(models.Model):
     Ac = models.BooleanField(default=False)
     attachedbathroom = models.BooleanField(default=False)
 
-class Hostellocation(models.Model):
+class Hostellocation(LocationDetail):
     roomavailibility  = models.ForeignKey(HostelRoomDetail,on_delete=models.CASCADE)
-    city     = models.CharField(max_length=50,blank=False)
-    locality = models.CharField(max_length=150,blank=False)
     street   = models.CharField(max_length=150,blank=False)
 
-    def __str__(self):
-        return self.city
 
 class Hosteldetails(models.Model):
     hostellocation = models.ForeignKey(Hostellocation,on_delete=models.CASCADE)
@@ -144,7 +103,37 @@ class Hosteldetails(models.Model):
     Availablefrom = models.DateTimeField()
     foodincluded = models.BooleanField(blank=False)
     image = models.ImageField()
+    # available services
+    # available amenities
+    parking_choices = [
+        ("TWO WHEELER","Two wheeler"),
+        ("FOUR WHEELER","Four wheeler")
+    ]
+    parking = models.CharField(choices=parking_choices,max_length=20)
+
+class hostelSchedule(Schedule):
+    hostelschedule= models.ForeignKey(Hosteldetails,on_delete=models.CASCADE)
+
+class flatDetail(PropertyDetail):
+    propertyage   = models.CharField(max_length=50)
+    facing        = models.CharField(max_length=20,blank=True)
+    propertysize  = models.IntegerField(blank=False)
+    tenant_choices = [
+        ("MALE","Male"),
+        ("FEMALE","Female"),
+    ]
+    tenant_type = models.CharField(choices=tenant_choices,max_length=20,blank=False)
+    Room_choices = [
+        ("SINGLE","Single"),
+        ("SHAREDROOM","Shared Room")
+    ]
+    flatrentexpected = models.IntegerField(blank=False)
+    flatrentDeposit = models.IntegerField(blank=False)
     
+
+
+
+
 
 
 
